@@ -1,0 +1,92 @@
+video:
+  source_type: youtube_embed
+  fps: 30
+  resolution: 1080p
+
+scene:
+  cut_detection:
+    method: ssim
+    threshold: 0.2
+  angle_classifier:
+    model: resnet18_angle_classifier_v1
+    confidence_threshold: 0.85
+
+calibration:
+  method: adaptive
+  homography:
+    refit_interval_frames: 60
+    ransac_reproj_threshold: 3.0
+    min_lines_visible: 4
+  degraded_mode:
+    enable: true
+    fallback_to_relative: true
+  angle_memory:
+    enable: true
+    similarity_threshold: 0.85
+
+detection:
+  player:
+    model: yolov8n
+    confidence: 0.7
+    nms_iou: 0.45
+    max_players: 2
+  ball:
+    model: tennis_ball_yolov5
+    confidence: 0.6
+
+tracking:
+  method: bytetrack
+  track_threshold: 0.6
+  track_buffer: 30
+  match_threshold: 0.8
+
+pose:
+  model: rtmpose_m
+  confidence_threshold: 0.7
+  smoothing:
+    method: kalman_oneeuro
+    kalman_process_noise: 0.1
+    oneeuro_mincutoff: 0.7
+  lifting_3d:
+    enable: true
+    method: height_based
+
+ocr:
+  scoreboard:
+    detector: template_match
+    engine: easyocr
+    languages: ["en"]
+    confidence: 0.7
+
+features:
+  window_seconds: 0.5
+  categories:
+    - kinematic
+    - temporal
+    - behavioral
+    - performance
+    - context
+  baseline:
+    method: rolling
+    window_days: 180
+    min_samples: 5
+
+learning:
+  algorithm: xgboost
+  xgboost:
+    max_depth: 6
+    learning_rate: 0.1
+    n_estimators: 100
+    subsample: 0.8
+  validation:
+    method: forward_chaining
+    test_size: 0.2
+
+alerts:
+  enable: true
+  interval_seconds: 120
+  thresholds:
+    fatigue_index: 75
+    confidence_min: 0.75
+    pattern_accuracy_min: 0.70
+  cooldown_seconds: 300
